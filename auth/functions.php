@@ -33,6 +33,9 @@ function verifyUser(mysqli $con) {
         if (!password_verify($password, $storedPasswordHash)) {
             die("Error: Incorrect password!");
         }
+        else {
+            return $row["id"];
+        }
     }
     else {
         die("Error: No user with ID : " . $appleID . ".");
