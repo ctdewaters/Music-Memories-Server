@@ -19,8 +19,7 @@ function processSongs(mysqli $con, array $songs) {
     return $songIDs;
 }
 
-function handleSong(mysqli $con, stdClass $song)
-{
+function handleSong(mysqli $con, stdClass $song) {
     $title = $song->title;
     $album = $song->album;
     $artist = $song->artist;
@@ -80,5 +79,11 @@ if ($result = $con->query($sql)) {
     die("Successfully posted memory.");
 }
 else {
-    die("Error: An error adding the memory occurred.");
+    $sql = "UPDATE memories SET title = '$title', description = '$description', libraryIDs = '$idsImploded' WHERE id = '$id' AND userID = $userID";
+    if ($result = $con->query($sql)) {
+        die("Successfully updated memory.");
+    }
+    else {
+        die("Error: Issue creating memory.");
+    }
 }
