@@ -1,7 +1,7 @@
 <?php
 
 function sendAPNSPush($http2ch, $payload, $token) {
-    $jws = "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IldQWVgyWkZQVzYifQ.eyJpc3MiOiJBUDQ4U0NUM0oyIiwiaWF0IjoxNTY4MjQ1MTU3LCJleHAiOjE1ODM3OTcxNTd9.kWZYBlw6-uJhRnCnAXT4hCvp-F2xA89GExGLyn7Ioz_AyjBTuNLs86jfwMVFcQ3AFlQcPd4FYc86hXVwWMXH6Q";
+    $jws = "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IldQWVgyWkZQVzYifQ.eyJpc3MiOiJBUDQ4U0NUM0oyIiwiaWF0IjoxNTY4MjkwNDg5LCJleHAiOjE1ODM4NDI0ODl9.KXYz9r0RMkk1iCJeB1wnaC7DJrduBL2pqLDdXw_Kqee8keDIpAJyJn26n65QhIIgxxmIFJf3kaxGWeV9f80__Q";
     $http2_server = 'https://api.development.push.apple.com'; // or 'api.push.apple.com' if production
     $app_bundle_id = 'com.CollinDeWaters.Music-Memories';
 
@@ -29,25 +29,66 @@ function sendAPNSPush($http2ch, $payload, $token) {
     if ($result === FALSE) {
         throw new Exception("Curl failed: " . curl_error($http2ch));
     }
-    print_r($result);
     // get response
     $status = curl_getinfo($http2ch);
     return $status;
 }
 
-// this is only needed with php prior to 5.5.24
-if (!defined('CURL_HTTP_VERSION_2_0')) {
-    define('CURL_HTTP_VERSION_2_0', 3);
+function retrieveAPNSTokensForUserID(mysqli $con, $userID) {
+    $sql = "SELECT * FROM users WHERE id = $userID";
+
+    if ($result = $con->query($sql)) {
+        if ($row = $result->fetch_array()) {
+            $tokensImploded = $row["apnsTokens"];
+            return explode(" ", $tokensImploded);
+        }
+    }
+    return false;
 }
 
-// open connection
-$http2ch = curl_init();
-curl_setopt($http2ch, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_2_0);
+function sendAPNSToUserID(mysqli $con, $payload, $userID) {
+    //Setup the HTTP2 connection.
+    if (!defined('CURL_HTTP_VERSION_2_0')) {
+        define('CURL_HTTP_VERSION_2_0', 3);
+    }
 
-// send push
-$token = "2070d564ef06c9ab48025621625abc0c89f9ee3bc3f6114c5c3681499493a74f";
+    // open connection
+    $http2ch = curl_init();
+    curl_setopt($http2ch, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_2_0);
 
 
+    $userDeviceTokens = retrieveAPNSTokensForUserID($con, $userID);
+    foreach ($userDeviceTokens as &$token) {
+        print_r("\n\n\n\n\n\n\n\n\n\n");
+        $result = sendAPNSPush($http2ch, $payload, $token);
+        $httpCode = $result["http_code"];
+
+        if ($httpCode == 400 || $httpCode == 410) {
+            //Invalid token, delete it from the user's account.
+            deleteTokenFromUserID($con, $userID, $token);
+        }
+        elseif ($httpCode == 200) {
+            //Successful request.
+        }
+    }
+}
+
+function deleteTokenFromUserID(mysqli $con, $userID, $token) {
+    $currentTokens = retrieveAPNSTokensForUserID($con, $userID);
+
+    foreach (array_keys($currentTokens, $token) as $key) {
+        unset($currentTokens[$key]);
+    }
+
+    $implodedTokens = implode(" ", $currentTokens);
+
+    $sql = "UPDATE users SET apnsTokens = '$implodedTokens' WHERE id = $userID";
+
+    if($con->query($sql)) {
+    }
+}
+
+/*
 $message = '{
     "aps" : {
         "alert" : {},
@@ -56,3 +97,4 @@ $message = '{
     "acme1" : "I ACTUALLY MADE THIS WORK"
 }';
 sendAPNSPush($http2ch, $message, $token);
+*/
