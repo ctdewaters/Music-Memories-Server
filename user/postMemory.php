@@ -49,6 +49,12 @@ function handleSong(mysqli $con, stdClass $song) {
     }
 }
 
+function fix64bitString($str) {
+    $str = str_replace(" ", "+", $str);
+    $str = str_replace("\n", "+", $str);
+    return $str;
+}
+
 //MARK: - Post Memory
 verifyAPIKey();
 
@@ -65,16 +71,15 @@ $userID = verifyUser($con);
 $payload = stripcslashes(mysqli_real_escape_string($con, $_POST["payload"]));
 $payloadArray = json_decode($payload);
 
-$title = $payloadArray->title;
-$description = $payloadArray->description;
+$title = fix64bitString($payloadArray->title);
+$description = fix64bitString($payloadArray->description);
 $id = $payloadArray->id;
 $isDynamic = boolval($payloadArray->isDynamic);
+
 
 if ($isDynamic != 1) {
     $isDynamic = 0;
 }
-
-echo $isDynamic;
 
 $songs = $payloadArray->songs;
 
