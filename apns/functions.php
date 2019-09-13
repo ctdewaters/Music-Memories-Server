@@ -1,7 +1,7 @@
 <?php
 
 function sendAPNSPush($http2ch, $payload, $token) {
-    $jws = "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IldQWVgyWkZQVzYifQ.eyJpc3MiOiJBUDQ4U0NUM0oyIiwiaWF0IjoxNTY4Mjk2MjUxLCJleHAiOjE1ODM4NDgyNTF9.o-yy8i_Csi_qwbD8h_HUO5de8yMf4BlHC3Zuo3aKlmxkysVgxcWgad6VfqSZzclHLIBj4wA9--eqwX1vnUFUvg";
+    $jws = "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IldQWVgyWkZQVzYifQ.eyJpc3MiOiJBUDQ4U0NUM0oyIiwiaWF0IjoxNTY4NDA2MDM3LCJleHAiOjE1ODM5NTgwMzd9.-kHCUlw3bN8aJ-itNT2_nJypYV_NH2ajyKspKXhBCP6Ns2VTW22aah5RgF5z5W_uwr_BMJephtrt_x2BySND8g";
     $http2_server = 'https://api.development.push.apple.com'; // or 'api.push.apple.com' if production
     $app_bundle_id = 'com.CollinDeWaters.Music-Memories';
 

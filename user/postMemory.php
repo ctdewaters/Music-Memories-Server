@@ -4,6 +4,7 @@ use http\QueryString;
 
 include "/home/music/public_html/api/auth/key.php";
 include "/home/music/public_html/api/auth/functions.php";
+include "/home/music/public_html/api/apns/functions.php";
 
 //MARK: - Functions
 
@@ -90,12 +91,16 @@ $idsImploded = implode(" ", $ids);
 $sql = "INSERT INTO memories (title, description, libraryIDs, userID, isDynamic, id) VALUES ('$title', '$description', '$idsImploded', $userID, $isDynamic, '$id')";
 
 if ($result = $con->query($sql)) {
-    die("Successfully posted memory.");
+    print("Successfully posted memory.");
+
+    $apnsPayload = createPayloadWithActionCode(10000);
+
+    sendAPNSToUserID($con, $apnsPayload, $userID);
 }
 else {
     $sql = "UPDATE memories SET title = '$title', description = '$description', libraryIDs = '$idsImploded' WHERE id = '$id' AND userID = $userID";
     if ($result = $con->query($sql)) {
-        die("Successfully updated memory.");
+        print("Successfully updated memory.");
     }
     else {
         die("Error: Issue creating memory.");
