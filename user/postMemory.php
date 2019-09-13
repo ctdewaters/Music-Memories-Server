@@ -20,9 +20,12 @@ function processSongs(mysqli $con, array $songs) {
 }
 
 function handleSong(mysqli $con, stdClass $song) {
-    $title = $song->title;
-    $album = $song->album;
-    $artist = $song->artist;
+    $title = str_replace("'", "''", $song->title);
+    $title = str_replace("%26", "&", $title);
+    $album = str_replace("'", "''", $song->album);
+    $album = str_replace("%26", "&", $album);
+    $artist = str_replace("'", "''", $song->artist);
+    $artist = str_replace("%26", "&", $artist);
 
     $sql = "SELECT * FROM songs WHERE title = '$title' AND album = '$album' AND artist = '$artist'";
 
@@ -41,7 +44,7 @@ function handleSong(mysqli $con, stdClass $song) {
             //Added to the database run the function again.
             return handleSong($con, $song);
         } else {
-            die("Error: An error adding a song occurred.");
+            print("Error: Could not add $song->title to database.");
         }
     }
 }
@@ -59,13 +62,19 @@ if (mysqli_connect_errno()) {
 
 $userID = verifyUser($con);
 
-$payload = stripcslashes(mysqli_real_escape_string($con, $_GET["payload"]));
+$payload = stripcslashes(mysqli_real_escape_string($con, $_POST["payload"]));
 $payloadArray = json_decode($payload);
 
 $title = $payloadArray->title;
 $description = $payloadArray->description;
 $id = $payloadArray->id;
 $isDynamic = boolval($payloadArray->isDynamic);
+
+if ($isDynamic != 1) {
+    $isDynamic = 0;
+}
+
+echo $isDynamic;
 
 $songs = $payloadArray->songs;
 

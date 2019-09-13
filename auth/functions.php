@@ -19,18 +19,26 @@ function verifyUser(mysqli $con) {
     }
     if (isset($_GET['password'])) {
         $password = mysqli_real_escape_string($con, $_GET['password']);
+
+        $decodedJWT = decodeJWT($password);
+
+        $iss = $decodedJWT->iss;
+        $aud = $decodedJWT->aud;
+        $sub = $decodedJWT->sub;
+
+        $rawPassword = $iss . "%^#" . $sub . "@!*" . $aud;
+
     }
     else {
         die("Error: No password value received.");
     }
-
 
     $sql = "SELECT * FROM users WHERE appleID = '$appleID'";
     $result = $con->query($sql);
 
     if ($row = $result->fetch_array()) {
         $storedPasswordHash = $row["password"];
-        if (!password_verify($password, $storedPasswordHash)) {
+        if (!password_verify($rawPassword, $storedPasswordHash)) {
             die("Error: Incorrect password!");
         }
         else {
@@ -40,4 +48,8 @@ function verifyUser(mysqli $con) {
     else {
         die("Error: No user with ID : " . $appleID . ".");
     }
+}
+
+function decodeJWT($jwt) {
+    return json_decode(base64_decode(str_replace('_', '/', str_replace('-','+',explode('.', $jwt)[1]))));
 }

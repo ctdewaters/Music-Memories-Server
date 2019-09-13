@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 # requires pyjwt (https://pyjwt.readthedocs.io/en/latest/)
 # pip install pyjwt
 

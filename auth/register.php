@@ -16,15 +16,9 @@ if (isset($_GET["appleID"])) {
     $appleID = mysqli_real_escape_string($con, $_GET['appleID']);
 }
 else {
-    //Check for username.
-    if (isset($_GET["username"])) {
-        $username = mysqli_real_escape_string($con, $_GET['username']);
-    }
-    else {
-        die("ERROR: Identifying value (username/Apple ID) not received!");
-    }
-
+    die("ERROR: Identifying value (username/Apple ID) not received!");
 }
+
 
 if (isset($_GET['firstName'])) {
     $firstName = mysqli_real_escape_string($con, $_GET['firstName']);
@@ -40,44 +34,45 @@ if($name === ' ') {
     die("Error: No name value received.");
 }
 
-if (isset($_GET['bio'])) {
-    $bio = mysqli_real_escape_string($con, $_GET['bio']);
-}
-
 if (isset($_GET['password'])) {
-    $passwordHash = mysqli_real_escape_string($con, password_hash($_GET['password'], PASSWORD_DEFAULT));
+    $JWT = mysqli_real_escape_string($con, $_GET["password"]);
+    $decodedJWT = decodeJWT($JWT);
+
+    $iss = $decodedJWT->iss;
+    $aud = $decodedJWT->aud;
+    $sub = $decodedJWT->sub;
+
+    echo "$JWT               ISS: $iss AUD: $aud  SUB: $sub";
+
+    if ($iss != "https://appleid.apple.com" || $aud != "com.CollinDeWaters.Music-Memories" || $sub != $appleID) {
+        die("Error: Invalid JWT token passed.");
+    }
+
+    $rawPassword = $iss . "%^#" . $sub . "@!*" . $aud;
+    $passwordHash = password_hash($rawPassword, PASSWORD_DEFAULT);
 }
 else {
     die("Error: No password value received.");
 }
 
-if(isset($username)) {
-    $sql = "INSERT INTO users (firstName, lastName, bio, password, username) VALUES ('$firstName', '$lastName', '$bio', '$passwordHash', '$username')";
-}
-else {
-    $sql = "INSERT INTO users (firstName, lastName, bio, password, appleID) VALUES ('$firstName', '$lastName', '$bio', '$passwordHash', '$appleID')";
-}
+$sql = "INSERT INTO users (firstName, lastName, password, appleID) VALUES ('$firstName', '$lastName', '$passwordHash', '$appleID')";
 
-if(mysqli_query($con, $sql)) {
+if($con->query($sql)) {
     $responseMessage = "Successfully registered user " . $firstName . " " . $lastName . "!";
-    $sql = "SELECT * FROM users WHERE username = '$username' OR appleID = '$appleID'";
 
-    if(isset($username)) {
-        $sql = "SELECT * FROM users WHERE username = '$username'";
-    }
-    else {
-        $sql = "SELECT * FROM users WHERE appleID = '$appleID'";
-    }
+    $sql = "SELECT * FROM users WHERE appleID = '$appleID'";
 
     $result = $con->query($sql);
     $response = createResponsePayload($result, $responseMessage);
 }
 else {
-    $responseMessage = "Error: Unable to register, please try again later!";
-    $payload = null;
-    $response = array();
-    $response["result"] = null;
-    $response["message"] = $responseMessage;
+    $userID = verifyUser($con);
+
+    $responseMessage = "Successfully verified user " . $firstName . " " . $lastName . "!";
+
+    $sql = "SELECT * FROM users WHERE appleID = '$appleID'";
+    $result = $con->query($sql);
+    $response  = createResponsePayload($result, $responseMessage);
 }
 
 print(json_encode($response));

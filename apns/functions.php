@@ -1,7 +1,7 @@
 <?php
 
 function sendAPNSPush($http2ch, $payload, $token) {
-    $jws = "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IldQWVgyWkZQVzYifQ.eyJpc3MiOiJBUDQ4U0NUM0oyIiwiaWF0IjoxNTY4MjkwNDg5LCJleHAiOjE1ODM4NDI0ODl9.KXYz9r0RMkk1iCJeB1wnaC7DJrduBL2pqLDdXw_Kqee8keDIpAJyJn26n65QhIIgxxmIFJf3kaxGWeV9f80__Q";
+    $jws = "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IldQWVgyWkZQVzYifQ.eyJpc3MiOiJBUDQ4U0NUM0oyIiwiaWF0IjoxNTY4Mjk2MjUxLCJleHAiOjE1ODM4NDgyNTF9.o-yy8i_Csi_qwbD8h_HUO5de8yMf4BlHC3Zuo3aKlmxkysVgxcWgad6VfqSZzclHLIBj4wA9--eqwX1vnUFUvg";
     $http2_server = 'https://api.development.push.apple.com'; // or 'api.push.apple.com' if production
     $app_bundle_id = 'com.CollinDeWaters.Music-Memories';
 
@@ -30,6 +30,7 @@ function sendAPNSPush($http2ch, $payload, $token) {
         throw new Exception("Curl failed: " . curl_error($http2ch));
     }
     // get response
+    print_r($result);
     $status = curl_getinfo($http2ch);
     return $status;
 }
@@ -87,6 +88,18 @@ function deleteTokenFromUserID(mysqli $con, $userID, $token) {
     if($con->query($sql)) {
     }
 }
+
+function createPayloadWithActionCode($actionCode) {
+    $payload = '{
+    "aps" : {
+        "alert" : {},
+        "content-available" : 1
+    },
+    "actionCode" : "' . $actionCode . '"
+    }';
+    return $payload;
+}
+
 
 /*
 $message = '{

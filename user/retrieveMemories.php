@@ -17,12 +17,6 @@ if (mysqli_connect_errno()) {
 
 $userID = verifyUser($con);
 
-$payload = '{
-    "aps" : {
-        "alert" : {},
-        "content-available" : 1
-    },
-    "actionCode" : "1"
-}';
+$payload = createPayloadWithActionCode(10000000);
 
 sendAPNSToUserID($con, $payload, $userID);
