@@ -26,21 +26,31 @@ if ($result = $con->query($sql)) {
         $row["isDynamic"] = (bool)$row["isDynamic"];
 
         //Get songs.
-        $songIDs = $row["songs"];
-        $songs = array();
-        foreach($songIDs as $id) {
-            $sql = "SELECT title, artist, album FROM songs WHERE id = $id";
-            if($result = $con->query($sql)) {
-                $songs[] = $result->fetch_assoc();
+        if ($songIDs = $row["libraryIDs"]) {
+            if ($songIDsExploded = explode(" ", $songIDs)) {
+                $songs = array();
+                foreach($songIDsExploded as $id) {
+                    $sql = "SELECT title, artist, album FROM songs WHERE id = $id";
+                    if($songResult = $con->query($sql)) {
+                        $songs[] = $songResult->fetch_assoc();
+                    }
+                }
+                $row["songs"] = $songs;
+            }
+            else {
+                $row["songs"] = [];
             }
         }
-        $row["songs"] = $songs;
+        else {
+            $row["songs"] = [];
+        }
 
         //Add the row to the data array.
         $data[] = $row;
     }
-    echo json_encode($data);
 }
 else {
     die("Error: Could not retrieve memories for user.");
 }
+
+echo json_encode($data);

@@ -69,6 +69,7 @@ if (mysqli_connect_errno()) {
 
 $userID = verifyUser($con);
 
+$apns = $_GET['apns'] == 'true' ? true : false;
 $payload = stripcslashes(mysqli_real_escape_string($con, $_POST["payload"]));
 $payloadArray = json_decode($payload);
 
@@ -92,10 +93,6 @@ $sql = "INSERT INTO memories (title, description, libraryIDs, userID, isDynamic,
 
 if ($result = $con->query($sql)) {
     print("Successfully posted memory.");
-
-    $apnsPayload = createPayloadWithActionCode(10000);
-
-    sendAPNSToUserID($con, $apnsPayload, $userID);
 }
 else {
     $sql = "UPDATE memories SET title = '$title', description = '$description', libraryIDs = '$idsImploded' WHERE id = '$id' AND userID = $userID";
@@ -105,4 +102,10 @@ else {
     else {
         die("Error: Issue creating memory.");
     }
+}
+
+if ($apns == true) {
+    $apnsPayload = createPayloadWithActionCode(10000);
+
+    sendAPNSToUserID($con, $apnsPayload, $userID);
 }
