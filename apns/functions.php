@@ -57,32 +57,21 @@ function sendAPNSToUserID(mysqli $con, $payload, $userID) {
     curl_setopt($http2ch, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_2_0);
 
     //Create the APNS provider token.
-    $jws = (string)retrieveProviderToken();
-
-    if ($jws == "") {
-        updateProviderToken();
-        $jws = (string)retrieveProviderToken();
-    }
+    $apnsCon = apnsCon();
+    $jws = (string)retrieveProviderToken($apnsCon);
+    $apnsCon->close();
 
 
     $userDeviceTokens = retrieveAPNSTokensForUserID($con, $userID);
     foreach ($userDeviceTokens as &$token) {
-        print_r("\n\n\n\n\n\n\n\n\n\n");
         $result = sendAPNSPush($jws, $http2ch, $payload, $token);
         $httpCode = $result["http_code"];
 
-        print_r($httpCode);
+        print_r($httpCode . " ");
 
         if ($httpCode == 400 || $httpCode == 410) {
             //Invalid token, delete it from the user's account.
             deleteTokenFromUserID($con, $userID, $token);
-        }
-        elseif ($httpCode == 403) {
-            echo "Updating provider token";
-            //Invalid Provider token, update and try again.
-            updateProviderToken();
-            sendAPNSToUserID($con, $payload, $userID);
-            return;
         }
         elseif ($httpCode == 200) {
             //Successful request.
@@ -117,15 +106,7 @@ function createPayloadWithActionCode($actionCode) {
     return $payload;
 }
 
-function retrieveProviderToken() {
-    //Connect to the database
-    $con = mysqli_connect("localhost","music_music","Ferrari9488","music_devtoken");
-
-    // Check connection
-    if (mysqli_connect_errno()) {
-        echo "Failed to connect to MySQL: " . mysqli_connect_error();
-    }
-
+function retrieveProviderToken($con) {
     $sql = "SELECT token FROM apnsToken LIMIT 1";
 
     $result = mysqli_query($con, $sql);
@@ -135,7 +116,16 @@ function retrieveProviderToken() {
     return $row["token"];
 }
 
-function updateProviderToken() {
+function updateProviderToken($con) {
+
+    $jwt = (string)exec("/usr/bin/python /home/music/public_html/api/apns/apns_token.py");
+
+    $sql = "UPDATE apnsToken SET token = '$jwt' WHERE id = 1";
+
+    $result = mysqli_query($con, $sql);
+}
+
+function apnsCon() {
     //Connect to the database
     $con = mysqli_connect("localhost","music_music","Ferrari9488","music_devtoken");
 
@@ -144,11 +134,5 @@ function updateProviderToken() {
         echo "Failed to connect to MySQL: " . mysqli_connect_error();
     }
 
-    $jwt = (string)exec("python apns_token.py");
-
-    $query = "DELETE FROM apnsToken";
-    mysqli_query($con, $query);
-
-    $sql = "INSERT INTO apnsToken (token) VALUES ('$jwt')";
-    mysqli_query($con, $sql);
+    return $con;
 }

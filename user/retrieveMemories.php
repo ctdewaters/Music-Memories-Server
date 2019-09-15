@@ -54,3 +54,7 @@ else {
 }
 
 echo json_encode($data);
+
+
+$result->free();
+$con->close();

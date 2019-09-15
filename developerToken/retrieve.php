@@ -22,4 +22,5 @@ $row = $result->fetch_assoc();
 
 echo $row["developerToken"];
 
-?>
+$result->free();
+$con->close();

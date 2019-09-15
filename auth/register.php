@@ -77,5 +77,6 @@ else {
 
 print(json_encode($response));
 
-?>
+$result->free();
+$con->close();
 

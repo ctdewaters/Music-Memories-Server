@@ -7,7 +7,7 @@
 import datetime
 import jwt
 
-APNS_AUTH_KEY = './AuthKey_WPYX2ZFPW6.p8'
+APNS_AUTH_KEY = '/home/music/public_html/api/apns/AuthKey_WPYX2ZFPW6.p8'
 f = open(APNS_AUTH_KEY)
 secret = f.read()
 

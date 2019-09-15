@@ -109,3 +109,6 @@ if ($apns == true) {
 
     sendAPNSToUserID($con, $apnsPayload, $userID);
 }
+
+$result->free();
+$con->close();
