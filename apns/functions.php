@@ -25,7 +25,6 @@ function sendAPNSPush($jws, $http2ch, $payload, $token) {
     ));
     // go...
     $result = curl_exec($http2ch);
-    print_r($result);
     if ($result === FALSE) {
         print_r(curl_error($http2ch));
         throw new Exception("Curl failed: " . curl_error($http2ch));
@@ -60,6 +59,12 @@ function sendAPNSToUserID(mysqli $con, $payload, $userID) {
     //Create the APNS provider token.
     $jws = (string)retrieveProviderToken();
 
+    if ($jws == "") {
+        updateProviderToken();
+        $jws = (string)retrieveProviderToken();
+    }
+
+
     $userDeviceTokens = retrieveAPNSTokensForUserID($con, $userID);
     foreach ($userDeviceTokens as &$token) {
         print_r("\n\n\n\n\n\n\n\n\n\n");
@@ -73,9 +78,11 @@ function sendAPNSToUserID(mysqli $con, $payload, $userID) {
             deleteTokenFromUserID($con, $userID, $token);
         }
         elseif ($httpCode == 403) {
+            echo "Updating provider token";
             //Invalid Provider token, update and try again.
             updateProviderToken();
             sendAPNSToUserID($con, $payload, $userID);
+            return;
         }
         elseif ($httpCode == 200) {
             //Successful request.
