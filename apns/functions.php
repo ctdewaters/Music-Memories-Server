@@ -27,6 +27,7 @@ function sendAPNSPush($jws, $http2ch, $payload, $token) {
     $result = curl_exec($http2ch);
     print_r($result);
     if ($result === FALSE) {
+        print_r(curl_error($http2ch));
         throw new Exception("Curl failed: " . curl_error($http2ch));
     }
     // get response
@@ -64,6 +65,8 @@ function sendAPNSToUserID(mysqli $con, $payload, $userID) {
         print_r("\n\n\n\n\n\n\n\n\n\n");
         $result = sendAPNSPush($jws, $http2ch, $payload, $token);
         $httpCode = $result["http_code"];
+
+        print_r($httpCode);
 
         if ($httpCode == 400 || $httpCode == 410) {
             //Invalid token, delete it from the user's account.
@@ -137,8 +140,8 @@ function updateProviderToken() {
     $jwt = (string)exec("python apns_token.py");
 
     $query = "DELETE FROM apnsToken";
-    $result = mysqli_query($con, $query);
+    mysqli_query($con, $query);
 
     $sql = "INSERT INTO apnsToken (token) VALUES ('$jwt')";
-    $result = mysqli_query($con, $sql);
+    mysqli_query($con, $sql);
 }

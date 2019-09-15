@@ -16,7 +16,6 @@ teamId = "AP48SCT3J2"
 alg = 'ES256'
 
 time_now = datetime.datetime.now()
-time_expired = datetime.datetime.now() + datetime.timedelta(hours=24*180)
 
 headers = {
 	"alg": alg,
@@ -25,7 +24,6 @@ headers = {
 
 payload = {
 	"iss": teamId,
-	"exp": int(time_expired.strftime("%s")),
 	"iat": int(time_now.strftime("%s"))
 }
 
