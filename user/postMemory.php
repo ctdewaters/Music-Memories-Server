@@ -69,7 +69,7 @@ if (mysqli_connect_errno()) {
 
 $userID = verifyUser($con);
 
-$apns = $_GET['apns'] == 'true' ? true : false;
+$apns = mysqli_real_escape_string($con, $_GET["apns"]) == 'true' ? true : false;
 $payload = stripcslashes(mysqli_real_escape_string($con, $_POST["payload"]));
 $payloadArray = json_decode($payload);
 

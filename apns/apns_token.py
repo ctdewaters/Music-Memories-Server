@@ -7,7 +7,6 @@
 import datetime
 import jwt
 
-
 APNS_AUTH_KEY = './AuthKey_WPYX2ZFPW6.p8'
 f = open(APNS_AUTH_KEY)
 secret = f.read()

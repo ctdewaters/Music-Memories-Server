@@ -1,7 +1,6 @@
 <?php
 
-function sendAPNSPush($http2ch, $payload, $token) {
-    $jws = "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IldQWVgyWkZQVzYifQ.eyJpc3MiOiJBUDQ4U0NUM0oyIiwiaWF0IjoxNTY4NDIwMDU2LCJleHAiOjE1ODM5NzIwNTZ9.O-aD9TWsA0Pz042Re4MX2u6xkWpyxylIbmurv4TI-wD2EGjnzlZLaq_8AMm5FCW-mSZonN4fQMd3JJvBJxKiSg";
+function sendAPNSPush($jws, $http2ch, $payload, $token) {
     $http2_server = 'https://api.development.push.apple.com'; // or 'api.push.apple.com' if production
     $app_bundle_id = 'com.CollinDeWaters.Music-Memories';
 
@@ -26,11 +25,11 @@ function sendAPNSPush($http2ch, $payload, $token) {
     ));
     // go...
     $result = curl_exec($http2ch);
+    print_r($result);
     if ($result === FALSE) {
         throw new Exception("Curl failed: " . curl_error($http2ch));
     }
     // get response
-    print_r($result);
     $status = curl_getinfo($http2ch);
     return $status;
 }
@@ -57,19 +56,27 @@ function sendAPNSToUserID(mysqli $con, $payload, $userID) {
     $http2ch = curl_init();
     curl_setopt($http2ch, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_2_0);
 
+    //Create the APNS provider token.
+    $jws = (string)retrieveProviderToken();
 
     $userDeviceTokens = retrieveAPNSTokensForUserID($con, $userID);
     foreach ($userDeviceTokens as &$token) {
         print_r("\n\n\n\n\n\n\n\n\n\n");
-        $result = sendAPNSPush($http2ch, $payload, $token);
+        $result = sendAPNSPush($jws, $http2ch, $payload, $token);
         $httpCode = $result["http_code"];
 
         if ($httpCode == 400 || $httpCode == 410) {
             //Invalid token, delete it from the user's account.
             deleteTokenFromUserID($con, $userID, $token);
         }
+        elseif ($httpCode == 403) {
+            //Invalid Provider token, update and try again.
+            updateProviderToken();
+            sendAPNSToUserID($con, $payload, $userID);
+        }
         elseif ($httpCode == 200) {
             //Successful request.
+            echo "SUCCESSFUL REQUEST.";
         }
     }
 }
@@ -100,14 +107,38 @@ function createPayloadWithActionCode($actionCode) {
     return $payload;
 }
 
+function retrieveProviderToken() {
+    //Connect to the database
+    $con = mysqli_connect("localhost","music_music","Ferrari9488","music_devtoken");
 
-/*
-$message = '{
-    "aps" : {
-        "alert" : {},
-        "content-available" : 1
-    },
-    "acme1" : "I ACTUALLY MADE THIS WORK"
-}';
-sendAPNSPush($http2ch, $message, $token);
-*/
+    // Check connection
+    if (mysqli_connect_errno()) {
+        echo "Failed to connect to MySQL: " . mysqli_connect_error();
+    }
+
+    $sql = "SELECT token FROM apnsToken LIMIT 1";
+
+    $result = mysqli_query($con, $sql);
+
+    $row = $result->fetch_assoc();
+
+    return $row["token"];
+}
+
+function updateProviderToken() {
+    //Connect to the database
+    $con = mysqli_connect("localhost","music_music","Ferrari9488","music_devtoken");
+
+    // Check connection
+    if (mysqli_connect_errno()) {
+        echo "Failed to connect to MySQL: " . mysqli_connect_error();
+    }
+
+    $jwt = (string)exec("python apns_token.py");
+
+    $query = "DELETE FROM apnsToken";
+    $result = mysqli_query($con, $query);
+
+    $sql = "INSERT INTO apnsToken (token) VALUES ('$jwt')";
+    $result = mysqli_query($con, $sql);
+}
