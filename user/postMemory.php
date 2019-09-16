@@ -78,6 +78,8 @@ $description = fix64bitString($payloadArray->description);
 $id = $payloadArray->id;
 $isDynamic = boolval($payloadArray->isDynamic);
 
+$startDate = fix64bitString($payloadArray->startDate);
+$endDate = fix64bitString($payloadArray->endDate);
 
 if ($isDynamic != 1) {
     $isDynamic = 0;
@@ -89,13 +91,13 @@ $ids = processSongs($con, $songs);
 $idsImploded = implode(" ", $ids);
 
 //Create the memory.
-$sql = "INSERT INTO memories (title, description, libraryIDs, userID, isDynamic, id) VALUES ('$title', '$description', '$idsImploded', $userID, $isDynamic, '$id')";
+$sql = "INSERT INTO memories (title, description, libraryIDs, userID, isDynamic, id, startDate, endDate) VALUES ('$title', '$description', '$idsImploded', $userID, $isDynamic, '$id', '$startDate', '$endDate')";
 
 if ($result = $con->query($sql)) {
     print("Successfully posted memory.");
 }
 else {
-    $sql = "UPDATE memories SET title = '$title', description = '$description', libraryIDs = '$idsImploded' WHERE id = '$id' AND userID = $userID";
+    $sql = "UPDATE memories SET title = '$title', description = '$description', libraryIDs = '$idsImploded', startDate = '$startDate', endDate = '$endDate' WHERE id = '$id' AND userID = $userID";
     if ($result = $con->query($sql)) {
         print("Successfully updated memory.");
     }
