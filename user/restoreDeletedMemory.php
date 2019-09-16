@@ -1,12 +1,10 @@
 <?php
 
-use http\QueryString;
-
 include "/home/music/public_html/api/auth/key.php";
 include "/home/music/public_html/api/auth/functions.php";
 include "/home/music/public_html/api/apns/functions.php";
 
-//MARK: - Post Memory
+
 verifyAPIKey();
 
 //Connect to the database
@@ -26,22 +24,25 @@ else {
     die("Error: No memory ID retrieved with request.");
 }
 
-$sql = "  INSERT INTO deletedMemories (id, title, description, libraryIDs, userID, isDynamic, startDate, endDate)
-          SELECT *
-          FROM memories
+$sql = "  INSERT INTO memories (id, title, description, libraryIDs, userID, isDynamic, startDate, endDate)
+          SELECT id, title, description, libraryIDs, userID, isDynamic, startDate, endDate
+          FROM deletedMemories
           WHERE id = '$id' AND userID = $userID";
 
+echo $sql . "            ";
+
 if ($result = $con->query($sql)) {
-    $sql = "DELETE FROM memories WHERE id = '$id' AND userID = $userID";
+    $sql = "DELETE FROM deletedMemories WHERE id = '$id' AND userID = $userID";
+    echo $sql;
     if ($result = $con->query($sql)) {
-        print("Successfully deleted memory $id.");
+        print("Successfully restored memory $id.");
     }
     else {
-        die("Error: Unable to delete memory $id");
+        die("Error: Unable to restore memory $id");
     }
 }
 else {
-    die("Error: Unable to delete memory $id");
+    die("Error: Unable to restore memory $id");
 }
 
 $apnsPayload = createPayloadWithActionCode(10000);
