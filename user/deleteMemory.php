@@ -26,19 +26,17 @@ else {
     die("Error: No memory ID retrieved with request.");
 }
 
-$sql = "  INSERT INTO deletedMemories (id, title, description, libraryIDs, userID, isDynamic, startDate, endDate)
+$sql = "INSERT INTO deletedMemories (id, title, description, libraryIDs, userID, isDynamic, startDate, endDate)
           SELECT *
           FROM memories
           WHERE id = '$id' AND userID = $userID";
 
 if ($result = $con->query($sql)) {
-    $sql = "DELETE FROM memories WHERE id = '$id' AND userID = $userID";
-    if ($result = $con->query($sql)) {
-        print("Successfully deleted memory $id.");
-    }
-    else {
-        die("Error: Unable to delete memory $id");
-    }
+}
+
+$sql = "DELETE FROM memories WHERE id = '$id' AND userID = $userID";
+if ($result = $con->query($sql)) {
+    print("Successfully deleted memory $id.");
 }
 else {
     die("Error: Unable to delete memory $id");
