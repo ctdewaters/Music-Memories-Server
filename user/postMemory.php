@@ -69,7 +69,7 @@ if (mysqli_connect_errno()) {
 
 $userID = verifyUser($con);
 
-$apns = mysqli_real_escape_string($con, $_GET["apns"]) == 'true' ? true : false;
+$apns = mysqli_real_escape_string($con, $_GET["apns"]);
 $payload = stripcslashes(mysqli_real_escape_string($con, $_POST["payload"]));
 $payloadArray = json_decode($payload);
 
@@ -106,7 +106,8 @@ else {
     }
 }
 
-if ($apns == true) {
+if ($apns == "true") {
+    echo "$apns!";
     $apnsPayload = createPayloadWithActionCode(10000);
 
     sendAPNSToUserID($con, $apnsPayload, $userID);

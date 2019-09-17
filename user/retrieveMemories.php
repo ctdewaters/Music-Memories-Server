@@ -45,6 +45,18 @@ if ($result = $con->query($sql)) {
             $row["songs"] = [];
         }
 
+        $imageIDs = $row["imageIDs"];
+        $explodedImageIDs = explode(" ", $imageIDs);
+
+        if ($explodedImageIDs == [""]) {
+            $row["imageIDs"] = [];
+        }
+        else {
+            $row["imageIDs"] = $explodedImageIDs;
+        }
+
+
+
         //Add the row to the data array.
         $data[] = $row;
     }

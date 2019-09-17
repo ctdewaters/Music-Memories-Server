@@ -42,7 +42,7 @@ else {
     die("Error: Unable to delete memory $id");
 }
 
-$apnsPayload = createPayloadWithActionCode(10000);
+$apnsPayload = createPayloadWithActionCode(999);
 sendAPNSToUserID($con, $apnsPayload, $userID);
 
 $result->free();

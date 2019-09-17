@@ -29,23 +29,21 @@ $sql = "  INSERT INTO memories (id, title, description, libraryIDs, userID, isDy
           FROM deletedMemories
           WHERE id = '$id' AND userID = $userID";
 
-echo $sql . "            ";
-
 if ($result = $con->query($sql)) {
-    $sql = "DELETE FROM deletedMemories WHERE id = '$id' AND userID = $userID";
-    echo $sql;
-    if ($result = $con->query($sql)) {
-        print("Successfully restored memory $id.");
-    }
-    else {
-        die("Error: Unable to restore memory $id");
-    }
+}
+else {
+    print("Error: Unable to restore memory $id");
+}
+
+$sql = "DELETE FROM deletedMemories WHERE id = '$id' AND userID = $userID";
+if ($result = $con->query($sql)) {
+    print("Successfully restored memory $id.");
 }
 else {
     die("Error: Unable to restore memory $id");
 }
 
-$apnsPayload = createPayloadWithActionCode(10000);
+$apnsPayload = createPayloadWithActionCode(777);
 sendAPNSToUserID($con, $apnsPayload, $userID);
 
 $result->free();
