@@ -18,7 +18,7 @@ if (mysqli_connect_errno()) {
 $userID = verifyUser($con);
 
 
-$sql = "SELECT * FROM memories WHERE userID = $userID";
+$sql = "SELECT id, title, description, libraryIDs, userID, isDynamic, startDate, endDate FROM memories WHERE userID = $userID";
 
 if ($result = $con->query($sql)) {
     $data = array();
@@ -44,17 +44,6 @@ if ($result = $con->query($sql)) {
         else {
             $row["songs"] = [];
         }
-
-        $imageIDs = $row["imageIDs"];
-        $explodedImageIDs = explode(" ", $imageIDs);
-
-        if ($explodedImageIDs == [""]) {
-            $row["imageIDs"] = [];
-        }
-        else {
-            $row["imageIDs"] = $explodedImageIDs;
-        }
-
 
 
         //Add the row to the data array.

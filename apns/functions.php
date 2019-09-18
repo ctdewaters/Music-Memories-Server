@@ -106,6 +106,19 @@ function createPayloadWithActionCode($actionCode) {
     return $payload;
 }
 
+function createImageUploadPayload($imageID, $memoryID, $actionCode) {
+    $payload = '{
+    "aps" : {
+        "alert" : {},
+        "content-available" : 1
+    },
+    "actionCode" : "' . $actionCode . '",
+    "memoryID" : "' . $memoryID . '",
+    "imageID" : "' . $imageID . '"
+    }';
+    return $payload;
+}
+
 function retrieveProviderToken($con) {
     $sql = "SELECT token FROM apnsToken LIMIT 1";
 

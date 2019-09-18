@@ -5,16 +5,24 @@ include "/home/music/public_html/api/auth/functions.php";
 include "/home/music/public_html/api/apns/functions.php";
 
 function addImageToMemory(mysqli $con, $memoryID, $imageID, $userID) {
-    $sql = "SELECT imageIDs FROM memories WHERE id = '$memoryID' AND userID = $userID";
+    $sql = "SELECT imageIDs, deletedImageIDs FROM memories WHERE id = '$memoryID' AND userID = $userID";
     if ($result = $con->query($sql)) {
         if ($row = $result->fetch_assoc()) {
+            //Active IDs
             $currentIDs = $row["imageIDs"];
             $currentIDsExploded = explode(" ", $currentIDs);
             $currentIDsExploded[] = $imageID;
-
             $idsImploded = implode(" ", $currentIDsExploded);
 
-            $sql = "UPDATE memories SET imageIDs = '$idsImploded' WHERE id = '$memoryID' AND userID = $userID";
+            //Deleted IDs
+            $currentDeletedIDs = $row["deletedImageIDs"];
+            $currentDeletedIDsExploded = explode(" ", $currentDeletedIDs);
+            $remove = array($imageID, "");
+            $newDeletedIDs = array_diff($currentDeletedIDsExploded, $remove);
+            $newDeletedIDs = implode(" ", $newDeletedIDs);
+
+
+            $sql = "UPDATE memories SET imageIDs = '$idsImploded', deletedImageIDs = '$newDeletedIDs' WHERE id = '$memoryID' AND userID = $userID";
             $con->query($sql);
         }
     }
@@ -46,10 +54,9 @@ if(!file_exists($target_dir))  {
 $target_dir = $target_dir . "/" . basename($_FILES["file"]["name"]);
 
 if (!file_exists($target_dir)) {
+    addImageToMemory($con, $memoryID, $imageID, $userID);
     if (move_uploaded_file($_FILES["file"]["tmp_name"], $target_dir)) {
         print("Successfully uploaded file.");
-
-        addImageToMemory($con, $memoryID, $imageID, $userID);
     }
     else {
         die("Error: Could not save image to server.");
@@ -58,5 +65,8 @@ if (!file_exists($target_dir)) {
 else {
     die("Error: File already exists in server!");
 }
+
+$payload = createImageUploadPayload($imageID, $memoryID, 256);
+sendAPNSToUserID($con, $payload, $userID);
 
 $con->close();

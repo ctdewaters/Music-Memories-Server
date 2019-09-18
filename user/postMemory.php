@@ -42,7 +42,7 @@ function handleSong(mysqli $con, stdClass $song) {
         $sql = "INSERT INTO songs (artist, album, title) VALUES ('$artist', '$album', '$title')";
 
         if ($result = $con->query($sql)) {
-            //Added to the database run the function again.
+            //Added to the database, run the function again.
             return handleSong($con, $song);
         } else {
             print("Error: Could not add $song->title to database.");
@@ -109,7 +109,6 @@ else {
 if ($apns == "true") {
     echo "$apns!";
     $apnsPayload = createPayloadWithActionCode(10000);
-
     sendAPNSToUserID($con, $apnsPayload, $userID);
 }
 
