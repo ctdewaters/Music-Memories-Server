@@ -24,8 +24,8 @@ else {
     die("Error: No memory ID retrieved with request.");
 }
 
-$sql = "  INSERT INTO memories (id, title, description, libraryIDs, userID, isDynamic, startDate, endDate, imageIDs, deletedImageIDs)
-          SELECT id, title, description, libraryIDs, userID, isDynamic, startDate, endDate, imageIDs, deletedImageIDs
+$sql = "  INSERT INTO memories (id, title, description, libraryIDs, deletedLibraryIDs, userID, isDynamic, startDate, endDate, imageIDs, deletedImageIDs)
+          SELECT id, title, description, libraryIDs, deletedLibraryIDs, userID, isDynamic, startDate, endDate, imageIDs, deletedImageIDs
           FROM deletedMemories
           WHERE id = '$id' AND userID = $userID";
 

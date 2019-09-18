@@ -5,50 +5,9 @@ use http\QueryString;
 include "/home/music/public_html/api/auth/key.php";
 include "/home/music/public_html/api/auth/functions.php";
 include "/home/music/public_html/api/apns/functions.php";
+include "functions.php";
 
 //MARK: - Functions
-
-///Adds songs to the songs table if necessary and returns an array of IDs.
-function processSongs(mysqli $con, array $songs) {
-    //Iterate through songs.
-
-    $songIDs = array();
-    foreach($songs as &$song) {
-        $id = handleSong($con, $song);
-        array_push($songIDs, $id);
-    }
-    return $songIDs;
-}
-
-function handleSong(mysqli $con, stdClass $song) {
-    $title = str_replace("'", "''", $song->title);
-    $title = str_replace("%26", "&", $title);
-    $album = str_replace("'", "''", $song->album);
-    $album = str_replace("%26", "&", $album);
-    $artist = str_replace("'", "''", $song->artist);
-    $artist = str_replace("%26", "&", $artist);
-
-    $sql = "SELECT * FROM songs WHERE title = '$title' AND album = '$album' AND artist = '$artist'";
-
-    $result = $con->query($sql);
-
-    if ($result->num_rows != 0) {
-        //Retrieve the ID of the song.
-        $row = $result->fetch_array();
-        return $row["id"];
-    }
-    else {
-        //Song not in table, add it and retrieve the generated ID.
-        $sql = "INSERT INTO songs (artist, album, title) VALUES ('$artist', '$album', '$title')";
-
-        if ($result = $con->query($sql)) {
-            //Added to the database, run the function again.
-            return handleSong($con, $song);
-        } else {
-            print("Error: Could not add $song->title to database.");
-        }
-    }
-}
 
 function fix64bitString($str) {
     $str = str_replace(" ", "+", $str);
@@ -87,8 +46,27 @@ if ($isDynamic != 1) {
 
 $songs = $payloadArray->songs;
 
-$ids = processSongs($con, $songs);
-$idsImploded = implode(" ", $ids);
+$sql = "SELECT libraryIDs FROM memories WHERE id = '$id'";
+if ($result = $con->query($sql)) {
+    if ($result->num_rows > 0 ) {
+        $row = $result->fetch_assoc();
+        $libraryIDs = $row["libraryIDs"];
+        $currentLibraryIDs = explode(" ", $libraryIDs);
+    }
+    else {
+        $currentLibraryIDs = array();
+    }
+}
+
+$payloadIDs = processSongs($con, $songs);
+
+foreach($payloadIDs as $songID){
+    if(!in_array($songID, $currentLibraryIDs, true)){
+        array_push($currentLibraryIDs, $songID);
+    }
+}
+
+$idsImploded = implode(" ", $currentLibraryIDs);
 
 //Create the memory.
 $sql = "INSERT INTO memories (title, description, libraryIDs, userID, isDynamic, id, startDate, endDate) VALUES ('$title', '$description', '$idsImploded', $userID, $isDynamic, '$id', '$startDate', '$endDate')";
@@ -107,7 +85,6 @@ else {
 }
 
 if ($apns == "true") {
-    echo "$apns!";
     $apnsPayload = createPayloadWithActionCode(10000);
     sendAPNSToUserID($con, $apnsPayload, $userID);
 }

@@ -3,6 +3,7 @@
 include "/home/music/public_html/api/auth/key.php";
 include "/home/music/public_html/api/auth/functions.php";
 include "/home/music/public_html/api/apns/functions.php";
+include "functions.php";
 
 
 verifyAPIKey();
@@ -27,19 +28,7 @@ if ($result = $con->query($sql)) {
 
         //Get songs.
         if ($songIDs = $row["libraryIDs"]) {
-            if ($songIDsExploded = explode(" ", $songIDs)) {
-                $songs = array();
-                foreach($songIDsExploded as $id) {
-                    $sql = "SELECT title, artist, album FROM songs WHERE id = $id";
-                    if($songResult = $con->query($sql)) {
-                        $songs[] = $songResult->fetch_assoc();
-                    }
-                }
-                $row["songs"] = $songs;
-            }
-            else {
-                $row["songs"] = [];
-            }
+            $row["songs"] = libraryIDsToSongs($con, $songIDs);
         }
         else {
             $row["songs"] = [];
@@ -55,7 +44,6 @@ else {
 }
 
 echo json_encode($data);
-
 
 $result->free();
 $con->close();
