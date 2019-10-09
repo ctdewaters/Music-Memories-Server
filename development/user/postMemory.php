@@ -2,9 +2,9 @@
 
 use http\QueryString;
 
-include "/home/music/public_html/api/auth/key.php";
-include "/home/music/public_html/api/auth/functions.php";
-include "/home/music/public_html/api/apns/functions.php";
+include "/home/music/public_html/api/development/auth/key.php";
+include "/home/music/public_html/api/development/auth/functions.php";
+include "/home/music/public_html/api/development/apns/functions.php";
 include "functions.php";
 
 //MARK: - Functions

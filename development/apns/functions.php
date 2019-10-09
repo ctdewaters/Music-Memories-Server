@@ -1,7 +1,7 @@
 <?php
 
 function sendAPNSPush($jws, $http2ch, $payload, $token) {
-    $http2_server = 'https://api.push.apple.com'; // or 'api.push.apple.com' if production
+    $http2_server = 'https://api.sandbox.push.apple.com'; // or 'api.push.apple.com' if production
     $app_bundle_id = 'com.CollinDeWaters.Music-Memories';
 
     // url (endpoint)

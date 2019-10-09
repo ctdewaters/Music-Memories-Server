@@ -1,7 +1,7 @@
 <?php
 
-include "/home/music/public_html/api/auth/key.php";
-include "/home/music/public_html/api/auth/functions.php";
+include "/home/music/public_html/api/development/auth/key.php";
+include "/home/music/public_html/api/development/auth/functions.php";
 include_once "functions.php";
 
 //MARK: - Post Memory
